@@ -1,3 +1,5 @@
+all: build run clean
+
 build:
 	gcc ./src/*.c `sdl2-config --libs --cflags` -lm -Wall -Wextra -o voxelspace
 

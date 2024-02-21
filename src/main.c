@@ -17,6 +17,12 @@ uint32_t palette[256 * 3];
 uint8_t *heightmap = NULL; 
 uint8_t *colormap  = NULL;
 
+// Vector object
+typedef struct {
+  float x;
+  float y;
+} vec2;
+
 // Camera object
 typedef struct {
   float x;       // X position on the map
@@ -107,6 +113,7 @@ void process_input(void) {
 
 // Render things on screen
 void render(void) {
+ 	clear_framebuffer(0xFFE0BB36);
 
   // cos and sine
   /* \     |
@@ -120,7 +127,6 @@ void render(void) {
        | 
      delta x
   */
-
 
   float sin_angle = sin(camera.angle);
   float cos_angle = cos(camera.angle);
@@ -137,12 +143,16 @@ void render(void) {
   */ 
 
   // Most left point of the camera
-  float plx = cos_angle * camera.zfar + sin_angle * camera.zfar; 
-  float ply = sin_angle * camera.zfar - cos_angle * camera.zfar;
+  vec2 pl = {
+   .x = cos_angle * camera.zfar + sin_angle * camera.zfar, 
+   .y = sin_angle * camera.zfar - cos_angle * camera.zfar
+  };
 
   // Most right point of the camera
-  float prx = cos_angle * camera.zfar - sin_angle * camera.zfar;
-  float pry = sin_angle * camera.zfar + cos_angle * camera.zfar; 
+  vec2 pr = {
+   .x = cos_angle * camera.zfar - sin_angle * camera.zfar,
+   .y = sin_angle * camera.zfar + cos_angle * camera.zfar 
+  };
 
   // Loop 320 rays from left to right
   for (int i = 0; i < SCREEN_WIDTH; i++) {
@@ -151,12 +161,16 @@ void render(void) {
     // (pr.x - pl.x) / SCREEN_WIDTH: Length of each small segment
     // * i: Offset by the current ray/column
     // / camera.zfar: Divide by the zfar length to adjust for perpesctive
-    float deltax = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
-    float deltay = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
+    vec2 delta = {
+     .x = (pl.x + (pr.x - pl.x) / SCREEN_WIDTH * i) / camera.zfar,
+     .y = (pl.y + (pr.y - pl.y) / SCREEN_WIDTH * i) / camera.zfar
+    };
 
     // Position of each ray
-    float rx = camera.x;
-    float ry = camera.y;
+    vec2 ray = {
+     .x = camera.x,
+     .y = camera.y
+    };
 
     // Get max voxel height 
     float max_height = SCREEN_HEIGHT;
@@ -164,11 +178,11 @@ void render(void) {
     // Depth loop (how far is from camera) 
     for (int z = 1; z < camera.zfar; z++) {
       // "Sloping" each ray
-      rx += deltax;
-      ry += deltay;
+      ray.x += delta.x;
+      ray.y += delta.y;
 
       // Find the offset that we have to go and fetch values from the heightmap and colormap
-      int map_offset = ((MAP_SIZE * ((int)ry & (MAP_SIZE - 1)) + ((int)rx & (MAP_SIZE - 1))));
+      int map_offset = ((MAP_SIZE * ((int)ray.y & (MAP_SIZE - 1)) + ((int)ray.x & (MAP_SIZE - 1))));
 
       // Project heights and find the height on-screen
       int proj_height = (int)((camera.height - heightmap[map_offset]) / z * SCALE_FACTOR + camera.horizon);
@@ -186,6 +200,7 @@ void render(void) {
     }
   }
 
+  // Render framebuffer to SDL Texture to be displayed
   render_framebuffer();
 }
 
@@ -195,7 +210,6 @@ int main(int argc, char *argv[]) {
   load_map();
 
 	while (is_running) {
-		clear_framebuffer(0xFFE0BB36);
     process_input();
     render();
   }
