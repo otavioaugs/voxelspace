@@ -109,6 +109,11 @@ void process_input(void) {
   if (keystate[SDL_SCANCODE_W]) {
     camera.horizon -= 1.5;
   }
+
+  // Collision detection
+  // Don't fly below the surface
+  int map_offset = ((((int)camera.y) & (MAP_SIZE - 1)) << 10) + (((int)camera.x) & (MAP_SIZE - 1)) | 0;
+  if ((heightmap[map_offset] + 10) > camera.height) camera.height = heightmap[map_offset] + 10; 
 }
 
 // Render things on screen
