@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define SCREEN_WIDTH 	240
-#define SCREEN_HEIGHT	240
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 240
 
 bool init_window(void);
 void destroy_window(void);
