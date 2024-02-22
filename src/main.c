@@ -80,33 +80,41 @@ void process_input(void) {
 
   const uint8_t *keystate = SDL_GetKeyboardState(NULL);
 
-  // WASD
-  if (keystate[SDL_SCANCODE_UP]) {
+  // WASD or cursor keys
+  if (keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]) {
     camera.x += cos(camera.angle);
     camera.y += sin(camera.angle);
   }
-  if (keystate[SDL_SCANCODE_DOWN]) {
+  if (keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S]) {
     camera.x -= cos(camera.angle);
     camera.y -= sin(camera.angle);
   }
-  if (keystate[SDL_SCANCODE_LEFT]) {
+  if (keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A]) {
     camera.angle -= 0.01;
   }
-  if (keystate[SDL_SCANCODE_RIGHT]) {
+  if (keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D]) {
     camera.angle += 0.01;
   }
 
-  if (keystate[SDL_SCANCODE_E]) {
+  // If W (UP) and S (DOWN) key are pressed at the same time, execute the S (DOWN) key
+  if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]) && (keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S])) {
+    camera.x -= cos(camera.angle);
+    camera.y -= sin(camera.angle);
+  }
+
+  // Up & Down
+  if (keystate[SDL_SCANCODE_R]) {
     camera.height++;
   }
-  if (keystate[SDL_SCANCODE_D]) {
+  if (keystate[SDL_SCANCODE_F]) {
     camera.height--;
   }
 
+  // Pitch
   if (keystate[SDL_SCANCODE_Q]) {
     camera.horizon += 1.5;
   }
-  if (keystate[SDL_SCANCODE_W]) {
+  if (keystate[SDL_SCANCODE_E]) {
     camera.horizon -= 1.5;
   }
 
@@ -209,7 +217,7 @@ void render(void) {
   render_framebuffer();
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
 	is_running = init_window();
 
   load_map();
