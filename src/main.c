@@ -144,6 +144,10 @@ void render(void) {
   float sin_angle = sin(camera.angle);
   float cos_angle = cos(camera.angle);
 
+  // Pre-calc division
+  float inv_screen_width = 1.0 / SCREEN_WIDTH;
+  float inv_zfar = 1.0 / camera.zfar;
+
   /* pl           pr
      * zfar| zfar*
       \   z|    /
@@ -169,14 +173,13 @@ void render(void) {
 
   // Loop 320 rays from left to right
   for (int i = 0; i < SCREEN_WIDTH; i++) {
-      
     // Getting "slope" of each ray to cast correctly
     // (pr.x - pl.x) / SCREEN_WIDTH: Length of each small segment
     // * i: Offset by the current ray/column
     // / camera.zfar: Divide by the zfar length to adjust for perpesctive
     vec2 delta = {
-     .x = (pl.x + (pr.x - pl.x) / SCREEN_WIDTH * i) / camera.zfar,
-     .y = (pl.y + (pr.y - pl.y) / SCREEN_WIDTH * i) / camera.zfar
+     .x = (pl.x + (pr.x - pl.x) * inv_screen_width * i) * inv_zfar,
+     .y = (pl.y + (pr.y - pl.y) * inv_screen_width * i) * inv_zfar
     };
 
     // Position of each ray
@@ -204,6 +207,7 @@ void render(void) {
       if (proj_height < max_height) {
         // Draw pixels from previous max-height until the new projected height
         for (int y = proj_height; y < max_height; y++) {
+          // Only draw pixels on the boundareis of map
           if (y >= 0) {
             draw_pixel(i, y, palette[colormap[map_offset]]);
           }
@@ -222,6 +226,7 @@ int main(void) {
 
   load_map();
 
+  // Game Loop
 	while (is_running) {
     process_input();
     render();
